@@ -6,6 +6,7 @@ import LiveIcon from '../icons/LiveIcon';
 import db from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import React, { useEffect } from 'react';
+import TooltipLink from '../lib/tooltip';
 
 export default function Sidebar() {
   return (
@@ -24,14 +25,23 @@ export default function Sidebar() {
 function SidebarLinks() {
   return (
     <div className='sb-links-container'>
-      <Link className='sb-links-wrapper' to='/'>
-        <ForYouIcon />
-        <h2 className='sb-links-text active'>For You</h2>
-      </Link>
-      <Link to='/following' className='sb-links-wrapper'>
+      <TooltipLink
+        to='/'
+        icon={<ForYouIcon />}
+        text='For You'
+        tooltipText='For You'
+      />
+      <TooltipLink
+        to='/following'
+        icon={<FollowingIcon />}
+        text='Following'
+        tooltipText='Following'
+      />
+
+      {/* <Link to='/following' className='sb-links-wrapper'>
         <FollowingIcon />
         <h2 className='sb-links-text'>Following</h2>
-      </Link>
+      </Link> */}
       <Link className='sb-links-wrapper'>
         <LiveIcon />
         <h2 className='sb-links-text'>LIVE</h2>
@@ -44,7 +54,8 @@ async function fetchSuggestedUsers(user) {
   const suggestedColRef = collection(db, 'users');
   const suggestedQuery = query(
     suggestedColRef,
-    where('uid', '!=', user?.uid), limit(5)
+    where('uid', '!=', user?.uid),
+    limit(5)
   );
   const suggestedSnapshot = await getDocs(suggestedQuery);
   return suggestedSnapshot.docs.map((doc) => ({

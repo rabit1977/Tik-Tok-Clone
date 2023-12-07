@@ -19,6 +19,7 @@ img {
 button {
   font: inherit;
 }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
@@ -298,7 +299,7 @@ html *::-webkit-scrollbar-thumb {
   margin: 0;
 }
 .tiktok-1xc03qp-DivFrameContainer::before {
-  content: "";
+  content: '';
   position: absolute;
   height: 1px;
   left: 8px;
@@ -381,7 +382,7 @@ html *::-webkit-scrollbar-thumb {
   position: relative;
 }
 .tiktok-n370wx-DivUserContainer::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 8px;
   right: 8px;
@@ -431,7 +432,7 @@ html *::-webkit-scrollbar-thumb {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-feature-settings: "tnum";
+  font-feature-settings: 'tnum';
   position: relative;
   overflow: hidden;
   color: #fff;
@@ -562,136 +563,136 @@ html *::-webkit-scrollbar-thumb {
 /*! CSS Used fontfaces */
 @font-face {
   font-family: ProximaNova;
-  src: local("ProximaNova-Regular"),
+  src: local('ProximaNova-Regular'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Regular.woff2)
-      format("woff2"),
+      format('woff2'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Regular.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Regular.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: ProximaNova;
-  src: local("ProximaNova-Semibold"),
+  src: local('ProximaNova-Semibold'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Semibold.woff2)
-      format("woff2"),
+      format('woff2'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Semibold.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Semibold.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: ProximaNova;
-  src: local("ProximaNova-Bold"),
+  src: local('ProximaNova-Bold'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Bold.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Bold.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: ProximaNova;
-  src: local("ProximaNova-Regular"),
+  src: local('ProximaNova-Regular'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Regular.woff2)
-      format("woff2"),
+      format('woff2'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Regular.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Regular.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: ProximaNova;
-  src: local("ProximaNova-Semibold"),
+  src: local('ProximaNova-Semibold'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Semibold.woff2)
-      format("woff2"),
+      format('woff2'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Semibold.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Semibold.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: ProximaNova;
-  src: local("ProximaNova-Bold"),
+  src: local('ProximaNova-Bold'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Bold.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/Proxima-Nova-Bold.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: SofiaPro;
-  src: local("SofiaPro-Regular"),
+  src: local('SofiaPro-Regular'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-regular.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-regular.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: SofiaPro;
-  src: local("SofiaPro-Semiold"),
+  src: local('SofiaPro-Semiold'),
     url(https://sf16-scmcdn-va.ibytedtos.com/goofy/tiktok/webapp/main/a1a44f86d5ec7500dbfb.woff2)
-      format("woff2");
+      format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: SofiaPro;
-  src: local("SofiaPro-Bold"),
+  src: local('SofiaPro-Bold'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-bold.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-bold.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: SofiaPro;
-  src: local("SofiaPro-Regular"),
+  src: local('SofiaPro-Regular'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-regular.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-regular.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: SofiaPro;
-  src: local("SofiaPro-Semiold"),
+  src: local('SofiaPro-Semiold'),
     url(https://sf16-scmcdn-va.ibytedtos.com/goofy/tiktok/webapp/main/a1a44f86d5ec7500dbfb.woff2)
-      format("woff2");
+      format('woff2');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: SofiaPro;
-  src: local("SofiaPro-Bold"),
+  src: local('SofiaPro-Bold'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-bold.woff)
-      format("woff"),
+      format('woff'),
     url(//lf16-tiktok-common.ibytedtos.com/obj/tiktok-web-common-sg/falcon/tiktok_fonts/sofiapro-bold.otf)
-      format("opentype");
+      format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

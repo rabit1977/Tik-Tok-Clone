@@ -9,8 +9,9 @@ import MusicIcon from '../icons/MusicIcon';
 import { formatDraftText } from '../lib/draft-utils';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { formatTimestamp } from '../lib/utils';
 
-export default function FeedItem({ post }) {
+export default function FeedItem({ post, timestamp }) {
   return (
     <div className='fi-container'>
       <Link to={`/${post.user.username}`} className='fi-avatar-link'>
@@ -31,6 +32,10 @@ export default function FeedItem({ post }) {
           className='fi-caption'
           dangerouslySetInnerHTML={{ __html: formatDraftText(post.caption) }}
         />
+        {timestamp && (
+          <div>{formatTimestamp(timestamp)}</div>
+        )}
+        <div>{post.createdAt}</div>
         <FollowButton post={post} />
         <div className='fi-music-container'>
           <h4>

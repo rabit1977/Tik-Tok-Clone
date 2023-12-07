@@ -1,4 +1,4 @@
-import { collectionGroup, getDocs } from 'firebase/firestore';
+import { collectionGroup, getDocs, serverTimestamp } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import FeedItem from '../components/FeedItem';
 import Sidebar from '../components/Sidebar';
@@ -24,9 +24,13 @@ function FeedList() {
         const postData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ref: doc.ref,
+          timestamp: doc.data().timestamp,
           ...doc.data(),
         }));
-        setPosts(postData);
+        // Sort the posts based on the timestamp in descending order
+        const sortedPosts = postData.sort((a, b) => b.timestamp - a.timestamp);
+        console.log(sortedPosts);
+        setPosts(sortedPosts);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -34,11 +38,12 @@ function FeedList() {
 
     fetchData();
   }, []);
+
   return (
     <div className='feed-item-container'>
       <div className='feed-item-inner'>
         {posts.map((post) => (
-          <FeedItem key={post.id} post={post} />
+          <FeedItem key={post.id} post={post} timestamp={post.timestamp} />
         ))}
       </div>
     </div>

@@ -1,8 +1,25 @@
+import React, { useEffect } from 'react';
 import Modal from '../components/Modal';
 import useSuccessModal from '../context/successModalContext';
 
 export default function SuccessModal({ onConfirm, onCancel }) {
   const { isSuccessOpen, closeSuccess } = useSuccessModal();
+
+  useEffect(() => {
+    let timeoutId;
+
+    if (isSuccessOpen) {
+      // Set a timeout to close the success modal after 3 seconds
+      timeoutId = setTimeout(() => {
+        closeSuccess();
+      }, 4000);
+    }
+
+    // Clear the timeout when the component is unmounted or when the modal is closed
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isSuccessOpen, closeSuccess]);
 
   return (
     <Modal open={isSuccessOpen} onClose={closeSuccess}>

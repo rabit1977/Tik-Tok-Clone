@@ -22,10 +22,21 @@ export default function Profile() {
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
+        const userId = querySnapshot.docs[0].id;
+
+        // Fetch posts for the user
+        const postsQuery = query(collection(db, 'users', userId, 'posts'));
+        const postsSnapshot = await getDocs(postsQuery);
+        const userPosts = postsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
         setUserDoc({
-          id: querySnapshot.docs[0].id,
+          id: userId,
           ref: querySnapshot.docs[0].ref,
           ...userData,
+          posts: userPosts,
         });
       } else {
         setUserDoc(null);
