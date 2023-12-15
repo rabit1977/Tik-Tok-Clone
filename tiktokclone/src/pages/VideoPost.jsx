@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  serverTimestamp,
+  limit,
+  collectionGroup,
+  doc,
+  setDoc,
+} from 'firebase/firestore';
 import { EditorState, convertToRaw } from 'draft-js';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import DraftEditor from '../components/DraftEditor';
@@ -15,35 +26,31 @@ import VolumeIcon from '../icons/VolumeIcon';
 import VolumeOffIcon from '../icons/VolumeOffIcon';
 import { formatDraftText } from '../lib/draft-utils';
 import db from '../lib/firebase';
+import { useCollection } from 'react-firebase-hooks/firestore';
 
 export default function VideoPost() {
+  const navigate = useNavigate();
   const { postId } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [post, setPost] = useState(null);
+  const [postsCol, loading] = useCollection(
+    collectionGroup(db, 'posts'),
+    where('postId', '==', postId),
+    limit(1)
+  );
+  const postDoc = postsCol?.docs.map((doc) => ({
+    id: doc.id,
+    ref: doc.ref,
+    ...doc.data(),
+  }));
+  const post = postDoc?.[0];
 
   useEffect(() => {
-    const fetchPost = async () => {
-      const postQuery = query(
-        collection(db, 'posts'),
-        where('postId', '==', postId),
-        limit(1)
-      );
-      const querySnapshot = await getDocs(postQuery);
-      if (!querySnapshot.empty) {
-        const docData = querySnapshot.docs[0].data();
-        setPost({
-          id: querySnapshot.docs[0].id,
-          ref: querySnapshot.docs[0].ref,
-          ...docData,
-        });
-      }
-      setLoading(false);
-    };
+    if (!loading && !post) {
+      // If post is not found, navigate to a 404 page or handle accordingly
+      navigate('/404');
+    }
+  }, [loading, post, navigate]);
 
-    fetchPost();
-  }, [postId]);
-
-  if (loading) return <Loader />;
+  if (loading || !post) return <Loader />;
 
   return (
     <div className='vp-container'>
@@ -58,8 +65,8 @@ export default function VideoPost() {
 }
 
 function VideoPostPlayer({ post }) {
-  const { videoRef, isMuted, toggleMute } = useVideo();
   const navigate = useNavigate();
+  const { videoRef, isMuted, toggleMute } = useVideo();
 
   return (
     <div className='vp-player-container'>
@@ -198,6 +205,7 @@ function VideoPostComment({ comment }) {
     </div>
   );
 }
+
 function VideoPostCommentForm({ post }) {
   const [user] = useAuthUser();
   const [editorState, setEditorState] = useState(() =>
@@ -219,6 +227,7 @@ function VideoPostCommentForm({ post }) {
     };
 
     try {
+      // Use addDoc instead of setDoc for adding a document to a collection
       await addDoc(collection(db, 'posts', post.id, 'comments'), newComment);
       setEditorState(EditorState.createEmpty());
     } catch (error) {
@@ -232,6 +241,7 @@ function VideoPostCommentForm({ post }) {
         <DraftEditor
           editorState={editorState}
           setEditorState={setEditorState}
+          onInputChange={addComment}
           maxLength={150}
         />
         <button onClick={addComment} className='vp-comment-form-submit'>

@@ -24,6 +24,7 @@
     "react-firebase-hooks": "^5.1.1",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.20.1",
+    "swr": "^2.2.4",
     "use-debounce": "^10.0.0"
   },
   "devDependencies": {

@@ -14,8 +14,8 @@ export default function Sidebar() {
       <div className='sb-wrapper'>
         <div className='sb-inner'>
           <SidebarLinks />
-          <SidebarSuggested />
           <SidebarFollowing />
+          <SidebarSuggested />
         </div>
       </div>
     </div>

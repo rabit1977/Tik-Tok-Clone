@@ -1,3 +1,4 @@
+import { signOut } from 'firebase/auth';
 import { useAuthUser } from '../context/userContext';
 import BusinessSuiteIcon from '../icons/BusinessSuiteIcon';
 import FeedbackIcon from '../icons/FeedbackIcon';

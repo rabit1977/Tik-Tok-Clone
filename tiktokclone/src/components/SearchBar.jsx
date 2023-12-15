@@ -1,4 +1,11 @@
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  limit, // Import limit from 'firebase/firestore'
+} from 'firebase/firestore';
 import SearchResults from '../components/SearchResults';
 import ClearIcon from '../icons/ClearIcon';
 import SearchIcon from '../icons/SearchIcon';
@@ -6,11 +13,11 @@ import SmallLoadingIcon from '../icons/SmallLoadingIcon';
 import db from '../lib/firebase';
 import debounce from 'lodash.debounce';
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-
+import { useLocation, useNavigate } from 'react-router-dom';
 export default function SearchBar() {
   const location = useLocation();
-  const [query, setQuery] = useState('');
+  const navigate = useNavigate(); // useNavigate replaces useHistory in v6
+  const [queryState, setQueryState] = useState(''); // use a different name for useState
   const [isLoading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const inputRef = useRef();
@@ -23,18 +30,19 @@ export default function SearchBar() {
     const searchUsers = debounce(async () => {
       try {
         setLoading(true);
-        let usersRef = collection(db, 'users');
+        let usersRef = collection(db, 'users'); // use collection to get a reference to a collection
 
-        if (query) {
-          const q = query(
+        if (queryState) {
+          // use query to combine multiple queries
+          usersRef = query(
             usersRef,
-            where('username', '>=', `@${query}`),
-            where('username', '<', `@${query}\uf8ff`),
+            where('username', '>=', `@${queryState}`),
+            where('username', '<', `@${queryState}\uf8ff`),
             orderBy('username'),
             limit(4)
           );
 
-          const result = await getDocs(q);
+          const result = await getDocs(usersRef); // use getDocs to get a snapshot of the query
           const results = result.docs.map((doc) => doc.data());
           setResults(results);
         }
@@ -45,30 +53,37 @@ export default function SearchBar() {
       }
     }, 500);
 
-    if (query.trim().length > 0) {
+    if (queryState.trim().length > 0) {
       searchUsers();
     }
-  }, [query]);
+  }, [queryState, db]);
 
   function clearInput() {
-    setQuery('');
+    setQueryState('');
     inputRef.current?.focus();
   }
 
   return (
     <div className='searchbar-container'>
-      <form className='searchbar-form'>
+      <form
+        className='searchbar-form'
+        onSubmit={(e) => {
+          e.preventDefault();
+          // use navigate to programmatically navigate to a path
+          navigate(`/search?q=${queryState}`);
+        }}
+      >
         <input
           ref={inputRef}
-          onChange={(e) => setQuery(e.target.value)}
-          value={query}
+          onChange={(e) => setQueryState(e.target.value)}
+          value={queryState}
           autoComplete='off'
           placeholder='Search accounts'
           type='text'
           className='searchbar-input'
         />
         <div>
-          {query && !isLoading && <ClearIcon onClick={clearInput} />}
+          {queryState && !isLoading && <ClearIcon onClick={clearInput} />}
           {isLoading && <SmallLoadingIcon />}
         </div>
         <span className='searchbar-border'></span>
@@ -76,7 +91,7 @@ export default function SearchBar() {
           <SearchIcon></SearchIcon>
         </button>
       </form>
-      <SearchResults results={results} query={query} />
+      <SearchResults results={results} query={queryState} />
     </div>
   );
 }
