@@ -17,13 +17,13 @@ export default function Profile() {
   const fetchUser = async () => {
     const usersRef = collection(db, 'users');
     const userQuery = query(usersRef, where('username', '==', username));
-
+  
     try {
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
         const userId = querySnapshot.docs[0].id;
-
+  
         // Fetch posts for the user
         const postsQuery = query(collection(db, 'users', userId, 'posts'));
         const postsSnapshot = await getDocs(postsQuery);
@@ -31,12 +31,23 @@ export default function Profile() {
           id: doc.id,
           ...doc.data(),
         }));
-
+  
+        // Fetch following and followers counts
+        const followingQuery = query(collection(db, 'users', userId, 'following'));
+        const followersQuery = query(collection(db, 'users', userId, 'followers'));
+        const followingSnapshot = await getDocs(followingQuery);
+        const followersSnapshot = await getDocs(followersQuery);
+  
+        const userFollowingCount = followingSnapshot.size;
+        const userFollowersCount = followersSnapshot.size;
+  
         setUserDoc({
           id: userId,
           ref: querySnapshot.docs[0].ref,
           ...userData,
           posts: userPosts,
+          followingCount: userFollowingCount,
+          followersCount: userFollowersCount,
         });
       } else {
         setUserDoc(null);
