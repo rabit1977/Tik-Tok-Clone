@@ -7,11 +7,16 @@ import ShareButton from '../components/ShareButton';
 import useVideo from '../hooks/useVideo';
 import MusicIcon from '../icons/MusicIcon';
 import { formatDraftText } from '../lib/draft-utils';
-import { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { formatTimestamp } from '../lib/utils';
 
-export default function FeedItem({ post, timestamp }) {
+const options = {
+  rootMargin: '0px',
+  threshold: [0.9, 1],
+};
+
+export default React.memo(function FeedItem({ post, timestamp }) {
   return (
     <div className='fi-container'>
       <Link to={`/${post.user.username}`} className='fi-avatar-link'>
@@ -32,9 +37,7 @@ export default function FeedItem({ post, timestamp }) {
           className='fi-caption'
           dangerouslySetInnerHTML={{ __html: formatDraftText(post.caption) }}
         />
-        {timestamp && (
-          <div>{formatTimestamp(timestamp)}</div>
-        )}
+        {timestamp && <div>{formatTimestamp(timestamp)}</div>}
         <div>{post.createdAt}</div>
         <FollowButton post={post} />
         <div className='fi-music-container'>
@@ -49,19 +52,14 @@ export default function FeedItem({ post, timestamp }) {
       </div>
     </div>
   );
-}
+});
 
 function FeedItemVideo({ post }) {
   const { videoRef, isPlaying, isMuted, togglePlay, toggleMute, setPlaying } =
     useVideo();
 
-  useEffect(() => {
-    const options = {
-      rootMargin: '0px',
-      threshold: [0.9, 1],
-    };
-
-    function playVideo(entries) {
+  const playVideo = useCallback(
+    (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           videoRef.current?.play();
@@ -71,17 +69,29 @@ function FeedItemVideo({ post }) {
           setPlaying(false);
         }
       });
+    },
+    [videoRef, setPlaying]
+  );
+  const observerRef = useRef();
+
+  useEffect(() => {
+    // Create the observer only once
+    if (!observerRef.current) {
+      observerRef.current = new IntersectionObserver(playVideo, options);
     }
 
-    const observer = new IntersectionObserver(playVideo, options);
+    // Observe the video element
+    observerRef.current.observe(videoRef.current);
 
-    observer.observe(videoRef.current);
-
+    // Return a function to unobserve the video element
     return () => {
-      observer.disconnect();
+      // Check if the videoRef.current is not null or undefined
+      if (videoRef.current) {
+        // Unobserve the video element
+        observerRef.current.unobserve(videoRef.current);
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [playVideo, videoRef]);
 
   return (
     <div className='fiv-container'>

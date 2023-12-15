@@ -1,33 +1,16 @@
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import MessagesIcon from '../icons/MessageIcon'; // Replace with the actual import path
 
+import { useCollectionData } from 'react-firebase-hooks/firestore';
 import db from '../lib/firebase';
-import { useEffect, useState } from 'react';
-
 export default function MessagesButton({ post }) {
-  const fetchComments = async () => {
-    try {
-      const commentsSnapshot = await getDocs(
-        collection(db, `posts/${post.id}/comments`)
-      );
-      return commentsSnapshot.docs.map((doc) => doc.data());
-    } catch (error) {
-      console.error('Error fetching comments', error);
-      return [];
-    }
-  };
-
-  const [comments, setComments] = useState([]);
-
-  useEffect(() => {
-    const loadComments = async () => {
-      const fetchedComments = await fetchComments();
-      setComments(fetchedComments);
-    };
-
-    loadComments();
-  }, [post.id]);
+  // Create a reference to the comments collection
+  const commentsRef = collection(db, 'comments');
+  // Create a query to get the comments for the post
+  const commentsQuery = query(commentsRef, where('postId', '==', post.id));
+  // Use the useCollectionData hook to listen to the query results
+  const [comments] = useCollectionData(commentsQuery);
 
   return (
     <Link
@@ -35,7 +18,7 @@ export default function MessagesButton({ post }) {
       className='messages-button'
     >
       <MessagesIcon />
-      <strong className='messages-button-count'>{comments.length}</strong>
+      <strong className='messages-button-count'>{comments?.length}</strong>
     </Link>
   );
 }

@@ -1,16 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Editor,
-  EditorState,
-  convertToRaw,
-  Modifier,
-  CompositeDecorator,
-} from 'draft-js';
+import Editor from '@draft-js-plugins/editor';
 import createMentionPlugin, {
   defaultSuggestionsFilter,
 } from '@draft-js-plugins/mention';
-import { getFirestore, query, collection, getDocs } from 'firebase/firestore';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
 import db from '../lib/firebase';
+import { insertCharacter } from '../lib/draft-utils';
+import { convertToRaw } from 'draft-js';
+import { collection } from 'firebase/firestore';
 
 export default function DraftEditor({
   editorState,
@@ -18,10 +15,16 @@ export default function DraftEditor({
   onInputChange,
   maxLength = 150,
 }) {
+  // Use the collection function to create a reference to the users collection
   const usersRef = collection(db, 'users');
-  const [users, setUsers] = useState([]);
+  // Use the useCollectionData hook to listen to the collection data, and pass an options object with the idField property
+  const [usersCol] = useCollectionData(usersRef, { idField: 'id' });
+  const users = usersCol?.map((user) => ({
+    ...user,
+    name: user.username,
+  }));
   const [open, setOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState(users.slice(0, 5));
+  const [suggestions, setSuggestions] = useState(users?.slice(0, 5));
 
   const editorRef = useRef();
 
@@ -32,44 +35,46 @@ export default function DraftEditor({
     return { plugins, MentionSuggestions };
   }, []);
 
-  const handleBeforeInput = (chars, editorState) => {
+  const onSearchChange = useCallback(
+    ({ value }) => {
+      setSuggestions(defaultSuggestionsFilter(value, users));
+    },
+    [users]
+  );
+
+  const onMention = useCallback(() => {
+    const newEditorState = insertCharacter('@', editorState);
+    setEditorState(newEditorState);
+  }, [editorState, setEditorState]);
+
+  const handleBeforeInput = useCallback(() => {
     const currentContent = editorState.getCurrentContent();
-    const currentContentLength = currentContent.getPlainText('').length;
+    const currentContentLength = currentContent.getPlainText().length;
 
     if (currentContentLength > maxLength - 1) {
       console.log(`You can type max ${maxLength} characters`);
+
       return 'handled';
     }
+  }, [editorState, maxLength]);
 
-    return 'not-handled';
-  };
+  const handlePastedText = useCallback(
+    (pastedText) => {
+      const contentState = editorState.getCurrentContent();
+      const characterLength = contentState.getPlainText().length;
 
-  const handlePastedText = (pastedText, _, editorState) => {
-    const currentContent = editorState.getCurrentContent();
-    const currentContentLength = currentContent.getPlainText('').length;
+      if (characterLength + pastedText.length > maxLength) {
+        console.log(`You can type max ${maxLength} characters`);
 
-    if (currentContentLength + pastedText.length > maxLength) {
-      console.log(`You can type max ${maxLength} characters`);
-      return 'handled';
-    }
-
-    return 'not-handled';
-  };
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const querySnapshot = await getDocs(usersRef);
-      const usersData = querySnapshot.docs.map((doc) => doc.data());
-      setUsers(usersData);
-      setSuggestions(usersData.slice(0, 5));
-    };
-
-    fetchUsers();
-  }, [usersRef]);
+        return 'handled';
+      }
+    },
+    [editorState, maxLength]
+  );
 
   useEffect(() => {
     const contentState = editorState.getCurrentContent();
-    const characterLength = contentState.getPlainText('').length;
+    const characterLength = contentState.getPlainText().length;
     const raw = convertToRaw(contentState);
     onInputChange({ raw, characterLength });
   }, [editorState, onInputChange]);
@@ -77,30 +82,31 @@ export default function DraftEditor({
   return (
     <div className='editor-container'>
       <div className='editor-wrapper'>
-        <div className='editor-inner' onClick={() => editorRef.current.focus()}>
-          <Editor
-            editorState={editorState}
-            onChange={setEditorState}
-            plugins={plugins}
-            ref={editorRef}
-            handleBeforeInput={handleBeforeInput}
-            handlePastedText={handlePastedText}
-          />
-          <MentionSuggestions
-            entryComponent={Entry}
-            open={open}
-            onOpenChange={(open) => setOpen(open)}
-            suggestions={suggestions || []}
-            onSearchChange={({ value }) =>
-              setSuggestions(defaultSuggestionsFilter(value, users))
-            }
-          />
+        <div className='editor-inner'>
+          <div
+            onClick={() => {
+              editorRef.current.focus();
+            }}
+          >
+            <Editor
+              editorState={editorState}
+              onChange={setEditorState}
+              plugins={plugins}
+              ref={editorRef}
+              handleBeforeInput={handleBeforeInput}
+              handlePastedText={handlePastedText}
+            />
+            <MentionSuggestions
+              entryComponent={Entry}
+              open={open}
+              onOpenChange={(open) => setOpen(open)}
+              suggestions={suggestions || []}
+              onSearchChange={onSearchChange}
+            />
+          </div>
         </div>
       </div>
-      <button
-        className='editor-mention-button'
-        onClick={() => onMention(editorState, setEditorState)}
-      >
+      <button className='editor-mention-button' onClick={onMention}>
         <img src='/at-icon.svg' alt='At Icon' className='editor-mention-icon' />
       </button>
       <button className='editor-hashtag-button'>
@@ -115,47 +121,21 @@ export default function DraftEditor({
 }
 
 function Entry(props) {
-  const { mention, ...parentProps } = props;
+  const { mention, theme, searchValue, isFocused, ...parentProps } = props;
 
   return (
     <div {...parentProps}>
       <div className='entry-container'>
         <div className='entry-container-left'>
-          <img src={mention.photoURL} className='entry-avatar' alt='' />
+          <img src={mention.photoURL} className='entry-avatar' />
         </div>
-
         <div className='entry-container-right'>
-          <div className='entry-text'>{mention.name}</div>
-          <div className='entry-title'>{mention.displayName}</div>
+          <div className='entry-text'>
+            {mention.name}
+            <span className='entry-username'>@{mention.displayName}</span>
+          </div>
         </div>
       </div>
     </div>
   );
-}
-
-function onMention(editorState, setEditorState) {
-  const currentContent = editorState.getCurrentContent();
-  const selection = editorState.getSelection();
-  const contentWithEntity = currentContent.createEntity(
-    'MENTION',
-    'IMMUTABLE',
-    { name: 'example', id: 1 }
-  );
-  const entityKey = contentWithEntity.getLastCreatedEntityKey();
-
-  const text = Modifier.replaceText(
-    currentContent,
-    selection,
-    '@',
-    undefined,
-    entityKey
-  );
-
-  const newEditorState = EditorState.push(
-    editorState,
-    text,
-    'insert-characters'
-  );
-
-  setEditorState(EditorState.moveFocusToEnd(newEditorState));
 }
