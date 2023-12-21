@@ -4,7 +4,7 @@ import {
   where,
   getDocs,
   orderBy,
-  limit, // Import limit from 'firebase/firestore'
+  limit,
 } from 'firebase/firestore';
 import SearchResults from '../components/SearchResults';
 import ClearIcon from '../icons/ClearIcon';
@@ -12,12 +12,13 @@ import SearchIcon from '../icons/SearchIcon';
 import SmallLoadingIcon from '../icons/SmallLoadingIcon';
 import db from '../lib/firebase';
 import debounce from 'lodash.debounce';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+
 export default function SearchBar() {
   const location = useLocation();
-  const navigate = useNavigate(); // useNavigate replaces useHistory in v6
-  const [queryState, setQueryState] = useState(''); // use a different name for useState
+  const navigate = useNavigate();
+  const [queryState, setQueryState] = useState('');
   const [isLoading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const inputRef = useRef();
@@ -26,14 +27,13 @@ export default function SearchBar() {
     setResults([]);
   }, [location.pathname]);
 
-  useEffect(() => {
-    const searchUsers = debounce(async () => {
+  const searchUsers = useCallback(
+    debounce(async () => {
       try {
         setLoading(true);
-        let usersRef = collection(db, 'users'); // use collection to get a reference to a collection
+        let usersRef = collection(db, 'users');
 
         if (queryState) {
-          // use query to combine multiple queries
           usersRef = query(
             usersRef,
             where('username', '>=', `@${queryState}`),
@@ -42,7 +42,7 @@ export default function SearchBar() {
             limit(4)
           );
 
-          const result = await getDocs(usersRef); // use getDocs to get a snapshot of the query
+          const result = await getDocs(usersRef);
           const results = result.docs.map((doc) => doc.data());
           setResults(results);
         }
@@ -51,17 +51,20 @@ export default function SearchBar() {
       } finally {
         setLoading(false);
       }
-    }, 500);
+    }, 500),
+    [queryState, db]
+  );
 
+  useEffect(() => {
     if (queryState.trim().length > 0) {
       searchUsers();
     }
-  }, [queryState, db]);
+  }, [queryState, searchUsers]);
 
-  function clearInput() {
+  const clearInput = useCallback(() => {
     setQueryState('');
     inputRef.current?.focus();
-  }
+  }, []);
 
   return (
     <div className='searchbar-container'>
@@ -69,7 +72,6 @@ export default function SearchBar() {
         className='searchbar-form'
         onSubmit={(e) => {
           e.preventDefault();
-          // use navigate to programmatically navigate to a path
           navigate(`/search?q=${queryState}`);
         }}
       >

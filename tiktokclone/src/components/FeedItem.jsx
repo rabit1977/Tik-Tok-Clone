@@ -1,3 +1,5 @@
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import FollowButton from '../components/FollowButton';
 import LikeButton from '../components/LikeButton';
 import MessagesButton from '../components/MessagesButton';
@@ -7,44 +9,49 @@ import ShareButton from '../components/ShareButton';
 import useVideo from '../hooks/useVideo';
 import MusicIcon from '../icons/MusicIcon';
 import { formatDraftText } from '../lib/draft-utils';
-import React, { useCallback, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { formatTimestamp } from '../lib/utils';
+import useVideoPlayer from '../hooks/useVideoPlayer';
 
-const options = {
-  rootMargin: '0px',
-  threshold: [0.9, 1],
-};
+const FeedItem = React.memo(({ post, timestamp }) => {
+  const {
+    username,
+    displayName,
+    photoURL,
+    caption,
+    audio_name,
+    videoUrl,
+    createdAt,
+    user,
+  } = post;
 
-export default React.memo(function FeedItem({ post, timestamp }) {
   return (
     <div className='fi-container'>
-      <Link to={`/${post.user.username}`} className='fi-avatar-link'>
+      <Link to={`/${user.username}`} className='fi-avatar-link'>
         <span className='fi-avatar'>
-          <img src={post.user.photoURL} alt={post.user.username} />
+          <img src={user.photoURL} alt={user.username} />
         </span>
       </Link>
       <div className='fi-info'>
         <div className='fi-author'>
-          <Link to={`/${post.user.username}`}>
-            <h3 className='fi-username'>{post.user.username}</h3>
+          <Link to={`/${user.username}`}>
+            <h3 className='fi-username'>{user.username}</h3>
           </Link>
-          <Link to={`/${post.user.username}`}>
-            <h4 className='fi-displayName'>{post.user.displayName}</h4>
+          <Link to={`/${user.username}`}>
+            <h4 className='fi-displayName'>{user.displayName}</h4>
           </Link>
         </div>
         <div
           className='fi-caption'
-          dangerouslySetInnerHTML={{ __html: formatDraftText(post.caption) }}
+          dangerouslySetInnerHTML={{ __html: formatDraftText(caption) }}
         />
         {timestamp && <div>{formatTimestamp(timestamp)}</div>}
-        <div>{post.createdAt}</div>
+        <div>{createdAt}</div>
         <FollowButton post={post} />
         <div className='fi-music-container'>
           <h4>
             <div className='fi-music'>
               <MusicIcon />
-              {post.audio_name}
+              {audio_name}
             </div>
           </h4>
         </div>
@@ -53,45 +60,11 @@ export default React.memo(function FeedItem({ post, timestamp }) {
     </div>
   );
 });
+export default FeedItem;
 
 function FeedItemVideo({ post }) {
-  const { videoRef, isPlaying, isMuted, togglePlay, toggleMute, setPlaying } =
-    useVideo();
-
-  const playVideo = useCallback(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          videoRef.current?.play();
-          setPlaying(true);
-        } else {
-          videoRef.current?.pause();
-          setPlaying(false);
-        }
-      });
-    },
-    [videoRef, setPlaying]
-  );
-  const observerRef = useRef();
-
-  useEffect(() => {
-    // Create the observer only once
-    if (!observerRef.current) {
-      observerRef.current = new IntersectionObserver(playVideo, options);
-    }
-
-    // Observe the video element
-    observerRef.current.observe(videoRef.current);
-
-    // Return a function to unobserve the video element
-    return () => {
-      // Check if the videoRef.current is not null or undefined
-      if (videoRef.current) {
-        // Unobserve the video element
-        observerRef.current.unobserve(videoRef.current);
-      }
-    };
-  }, [playVideo, videoRef]);
+  const { videoRef, isPlaying, isMuted, togglePlay, toggleMute } =
+    useVideoPlayer(post.videoUrl);
 
   return (
     <div className='fiv-container'>

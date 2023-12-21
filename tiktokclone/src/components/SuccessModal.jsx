@@ -8,12 +8,16 @@ export default function SuccessModal({ onConfirm, onCancel }) {
   useEffect(() => {
     let timeoutId;
 
-    if (isSuccessOpen) {
-      // Set a timeout to close the success modal after 3 seconds
-      timeoutId = setTimeout(() => {
-        closeSuccess();
-      }, 4000);
-    }
+    const closeSuccessAsync = async () => {
+      if (isSuccessOpen) {
+        // Set a timeout to close the success modal after 3 seconds
+        timeoutId = setTimeout(() => {
+          closeSuccess();
+        }, 4000);
+      }
+    };
+
+    closeSuccessAsync();
 
     // Clear the timeout when the component is unmounted or when the modal is closed
     return () => {

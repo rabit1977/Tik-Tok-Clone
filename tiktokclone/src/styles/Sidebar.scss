@@ -139,7 +139,8 @@ html *::-webkit-scrollbar-thumb {
   }
 }
 .tiktok-1tgrt5d-DivSideNavContainer {
-  position: relative;
+  position: sticky;
+  top: 70px;
   width: 356px;
   -webkit-flex: 0 0 356px;
   -ms-flex: 0 0 356px;

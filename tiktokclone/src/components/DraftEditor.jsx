@@ -1,13 +1,13 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Editor from '@draft-js-plugins/editor';
 import createMentionPlugin, {
   defaultSuggestionsFilter,
 } from '@draft-js-plugins/mention';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useCollectionData } from 'react-firebase-hooks/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import db from '../lib/firebase';
 import { insertCharacter } from '../lib/draft-utils';
 import { convertToRaw } from 'draft-js';
-import { collection } from 'firebase/firestore';
 
 export default function DraftEditor({
   editorState,
@@ -15,16 +15,15 @@ export default function DraftEditor({
   onInputChange,
   maxLength = 150,
 }) {
-  // Use the collection function to create a reference to the users collection
-  const usersRef = collection(db, 'users');
-  // Use the useCollectionData hook to listen to the collection data, and pass an options object with the idField property
-  const [usersCol] = useCollectionData(usersRef, { idField: 'id' });
-  const users = usersCol?.map((user) => ({
-    ...user,
-    name: user.username,
-  }));
+  const usersCollection = collection(db, 'users');
+  const [usersSnapshot] = useCollection(usersCollection);
+  const users = usersSnapshot?.docs.map((doc) => ({
+    ...doc.data(),
+    name: doc.data().username,
+  })) || [];
+
   const [open, setOpen] = useState(false);
-  const [suggestions, setSuggestions] = useState(users?.slice(0, 5));
+  const [suggestions, setSuggestions] = useState(users.slice(0, 5));
 
   const editorRef = useRef();
 
@@ -35,42 +34,44 @@ export default function DraftEditor({
     return { plugins, MentionSuggestions };
   }, []);
 
-  const onSearchChange = useCallback(
-    ({ value }) => {
-      setSuggestions(defaultSuggestionsFilter(value, users));
-    },
-    [users]
-  );
+  useEffect(() => {
+    if (usersSnapshot) {
+      const usersData = usersSnapshot.docs.map((doc) => ({
+        ...doc.data(),
+        name: doc.data().username,
+      }));
+      setSuggestions(usersData.slice(0, 5));
+    }
+  }, [usersSnapshot]);
 
-  const onMention = useCallback(() => {
+  function onSearchChange({ value }) {
+    setSuggestions(defaultSuggestionsFilter(value, users));
+  }
+
+  function onMention() {
     const newEditorState = insertCharacter('@', editorState);
     setEditorState(newEditorState);
-  }, [editorState, setEditorState]);
+  }
 
-  const handleBeforeInput = useCallback(() => {
+  function handleBeforeInput() {
     const currentContent = editorState.getCurrentContent();
     const currentContentLength = currentContent.getPlainText().length;
 
     if (currentContentLength > maxLength - 1) {
       console.log(`You can type max ${maxLength} characters`);
-
       return 'handled';
     }
-  }, [editorState, maxLength]);
+  }
 
-  const handlePastedText = useCallback(
-    (pastedText) => {
-      const contentState = editorState.getCurrentContent();
-      const characterLength = contentState.getPlainText().length;
+  function handlePastedText(pastedText) {
+    const contentState = editorState.getCurrentContent();
+    const characterLength = contentState.getPlainText().length;
 
-      if (characterLength + pastedText.length > maxLength) {
-        console.log(`You can type max ${maxLength} characters`);
-
-        return 'handled';
-      }
-    },
-    [editorState, maxLength]
-  );
+    if (characterLength + pastedText.length > maxLength) {
+      console.log(`You can type max ${maxLength} characters`);
+      return 'handled';
+    }
+  }
 
   useEffect(() => {
     const contentState = editorState.getCurrentContent();
@@ -100,7 +101,7 @@ export default function DraftEditor({
               entryComponent={Entry}
               open={open}
               onOpenChange={(open) => setOpen(open)}
-              suggestions={suggestions || []}
+              suggestions={suggestions}
               onSearchChange={onSearchChange}
             />
           </div>
@@ -127,13 +128,12 @@ function Entry(props) {
     <div {...parentProps}>
       <div className='entry-container'>
         <div className='entry-container-left'>
-          <img src={mention.photoURL} className='entry-avatar' />
+          <img src={mention.photoURL} className='entry-avatar' alt='' />
         </div>
+
         <div className='entry-container-right'>
-          <div className='entry-text'>
-            {mention.name}
-            <span className='entry-username'>@{mention.displayName}</span>
-          </div>
+          <div className='entry-text'>{mention.name}</div>
+          <div className='entry-title'>{mention.displayName}</div>
         </div>
       </div>
     </div>

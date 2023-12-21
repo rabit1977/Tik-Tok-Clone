@@ -11,6 +11,8 @@ export default function FollowButton({ post }) {
   const followerRef = doc(db, 'users', post.user.uid, 'followers', user.uid);
   const [followingDoc] = useDocumentData(followingRef);
 
+  const isCurrentUser = user.uid === post.user.uid;
+
   async function addFollow() {
     await setDoc(followingRef, post.user);
     await setDoc(followerRef, user);
@@ -24,15 +26,20 @@ export default function FollowButton({ post }) {
   return (
     <div className='fb-container'>
       <div className='fb-wrapper'>
-        {followingDoc ? (
-          <button className='ufb' onClick={removeFollow}>
-            Unfollow
-          </button>
-        ) : (
-          <button className='fb' onClick={addFollow}>
-            Follow
-          </button>
-        )}
+        {!isCurrentUser ? (
+          // Only render the button if the user is not the signed-in user
+          <>
+            {followingDoc ? (
+              <button className='ufb' onClick={removeFollow}>
+                Unfollow
+              </button>
+            ) : (
+              <button className='fb' onClick={addFollow}>
+                Follow
+              </button>
+            )}
+          </>
+        ) : null}
       </div>
     </div>
   );

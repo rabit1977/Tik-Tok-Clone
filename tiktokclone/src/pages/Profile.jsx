@@ -7,9 +7,10 @@ import Sidebar from '../components/Sidebar';
 import useVideo from '../hooks/useVideo';
 import HeartIcon from '../icons/HeartIcon';
 import db from '../lib/firebase';
-import NotFound from '../pages/NotFound';
+// import NotFound from '../pages/NotFound';
+import FollowingPage from '../pages/FollowingPage';
 
-export default function Profile() {
+export default function Profile({ post }) {
   const { username } = useParams();
   const [loading, setLoading] = useState(true);
   const [userDoc, setUserDoc] = useState(null);
@@ -17,12 +18,13 @@ export default function Profile() {
   const fetchUser = async () => {
     const usersRef = collection(db, 'users');
     const userQuery = query(usersRef, where('username', '==', username));
+    let userId;
   
     try {
       const querySnapshot = await getDocs(userQuery);
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
-        const userId = querySnapshot.docs[0].id;
+        userId = querySnapshot.docs[0].id;
   
         // Fetch posts for the user
         const postsQuery = query(collection(db, 'users', userId, 'posts'));
@@ -33,13 +35,24 @@ export default function Profile() {
         }));
   
         // Fetch following and followers counts
-        const followingQuery = query(collection(db, 'users', userId, 'following'));
-        const followersQuery = query(collection(db, 'users', userId, 'followers'));
+        const followingQuery = query(
+          collection(db, 'users', userId, 'following')
+        );
+        const followersQuery = query(
+          collection(db, 'users', userId, 'followers')
+        );
         const followingSnapshot = await getDocs(followingQuery);
         const followersSnapshot = await getDocs(followersQuery);
   
         const userFollowingCount = followingSnapshot.size;
         const userFollowersCount = followersSnapshot.size;
+  
+        // Fetch liked posts count
+        const likedPostsQuery = query(
+          collection(db, 'users', userId, 'likedPosts')
+        );
+        const likedPostsSnapshot = await getDocs(likedPostsQuery);
+        const likedPostsCount = likedPostsSnapshot.size;
   
         setUserDoc({
           id: userId,
@@ -48,6 +61,7 @@ export default function Profile() {
           posts: userPosts,
           followingCount: userFollowingCount,
           followersCount: userFollowersCount,
+          likedPostsCount: likedPostsCount,
         });
       } else {
         setUserDoc(null);
@@ -58,13 +72,14 @@ export default function Profile() {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchUser();
   }, [username]);
 
   if (loading) return <Loader />;
-  if (!loading && !userDoc) return <NotFound />;
+  if (!loading && !userDoc) return <FollowingPage />;
 
   return (
     <div className='p-container'>
@@ -72,7 +87,7 @@ export default function Profile() {
       <div className='p-wrapper'>
         <div className='p-inner'>
           <ProfileHeader profile={userDoc} />
-          <ProfileTabs profile={userDoc} />
+          <ProfileTabs profile={userDoc} post={post} />
         </div>
       </div>
     </div>
@@ -109,6 +124,10 @@ function ProfileHeader({ profile }) {
           <strong>{profile.followersCount}</strong>
           <span className='p-header-data-title'>Followers</span>
         </div>
+        <div className='p-header-data-column'>
+          <strong>{profile.likedPostsCount}</strong>
+          <span className='p-header-data-title'>Liked Posts</span>
+        </div>
       </section>
     </header>
   );
@@ -118,21 +137,24 @@ function ProfileTabs({ profile }) {
   const [isVideosActive, setVideosActive] = useState(true);
 
   return (
-    <div className='p-tabs-container'>
-      <div className='p-tabs-wrapper'>{/* ... (unchanged) */}</div>
-      <div className='p-tabs-posts-container'>
-        {isVideosActive && profile.posts ? (
+    <div className='p-tabs-posts-container'>
+      {isVideosActive ? (
+        profile.posts && profile.posts.length > 0 ? (
           profile.posts.map((post) => (
             <ProfileVideoPost key={post.id} post={post} />
           ))
-        ) : !isVideosActive && profile.likedPosts ? (
-          profile.likedPosts.map((post) => (
-            <ProfileVideoPost key={post.id} post={post} />
-          ))
         ) : (
-          <p>No posts to display</p>
-        )}
-      </div>
+          <p>No video posts to display</p>
+        )
+      ) : !isVideosActive &&
+        profile.likedPosts &&
+        profile.likedPosts.length > 0 ? (
+        profile.likedPosts.map((post) => (
+          <ProfileVideoPost key={post.id} post={post} />
+        ))
+      ) : (
+        <p>No liked video posts to display</p>
+      )}
     </div>
   );
 }

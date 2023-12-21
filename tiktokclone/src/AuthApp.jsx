@@ -1,10 +1,12 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Header from './components/Header';
-import Feed from './pages/Feed';
+import Feed from './pages/Feeds';
+import FollowingPage from './pages/FollowingPage';
+import Profile from './pages/Profile';
 import Upload from './pages/Upload';
 import VideoPost from './pages/VideoPost';
-import Profile from './pages/Profile';
-import NotFound from './pages/NotFound';
+
+// import NotFound from './pages/NotFound';
 
 export default function AuthApp() {
   return (
@@ -15,7 +17,7 @@ export default function AuthApp() {
         <Route path='/upload' element={<Upload />} />
         <Route path='/:username/video/:postId' element={<VideoPost />} />
         <Route path='/:username' element={<Profile />} />
-        <Route path='*' element={<NotFound />} />
+        <Route path='/:username/following' element={<FollowingPage />} />
       </Routes>
     </Router>
   );

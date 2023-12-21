@@ -1,19 +1,19 @@
+import { EditorState } from 'draft-js';
+import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { nanoid } from 'nanoid';
+import { useRef, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router';
+import DiscardModal from '../components/DiscardModal';
 import DraftEditor from '../components/DraftEditor';
 import SuccessModal from '../components/SuccessModal';
 import useDiscardModal from '../context/discardModalContext';
 import useSuccessModal from '../context/successModalContext';
 import { useAuthUser } from '../context/userContext';
-import { EditorState } from 'draft-js';
-import useDragDrop from '../hooks/useDragDrop';
 import useFirebaseUpload from '../hooks/useFirebaseUpload';
 import UploadCircleIcon from '../icons/UploadCircleIcon';
 import db from '../lib/firebase';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router';
-import { nanoid } from 'nanoid';
-import DiscardModal from '../components/DiscardModal';
-import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import useDragDrop from '../hooks/useDragDrop';
 
 export default function Upload() {
   const [user] = useAuthUser();
@@ -185,32 +185,32 @@ function UploadSelectFile({ handleUpload, isUploading, videoUrl }) {
 
 function UploadForm({ user, videoUrl, discardUpload }) {
   const navigate = useNavigate();
-  const { openSuccess, closeSuccess } = useSuccessModal();
   const { openDiscard, closeDiscard } = useDiscardModal();
+  const { openSuccess, closeSuccess } = useSuccessModal();
   const [isSubmitting, setSubmitting] = useState(false);
   const [caption, setCaption] = useState({ raw: null, characterLength: 0 });
   const [editorState, setEditorState] = useState(() =>
     EditorState.createEmpty()
   );
 
-  async function discardPost() {
+  const discardPost = () => {
     discardUpload();
     closeDiscard();
     closeSuccess();
     setCaption({ raw: null, characterLength: 0 });
     setEditorState(() => EditorState.createEmpty());
-  }
+  };
 
-  async function onSubmit() {
-    try {
-      if (videoUrl) {
-        setSubmitting(true);
-        const postId = nanoid();
-        const userPostsRef = doc(
-          collection(db, 'users', user.uid, 'posts'),
-          postId
-        );
+  const onSubmit = async () => {
+    if (videoUrl) {
+      setSubmitting(true);
+      const postId = nanoid();
+      const userPostsRef = doc(
+        collection(db, 'users', user.uid, 'posts'),
+        postId
+      );
 
+      try {
         await setDoc(userPostsRef, {
           postId,
           user,
@@ -220,16 +220,15 @@ function UploadForm({ user, videoUrl, discardUpload }) {
           caption: caption.raw,
           timestamp: serverTimestamp(),
         });
-
         openSuccess();
+      } catch (error) {
+        console.error(error);
+        alert('Post could not be added!', error.message);
+      } finally {
+        setSubmitting(false);
       }
-    } catch (error) {
-      console.error('Error adding post:', error);
-      alert('Post could not be added!\n' + error.message);
-    } finally {
-      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <>

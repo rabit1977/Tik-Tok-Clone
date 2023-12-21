@@ -30,7 +30,7 @@ export default function LikeButton({ post }) {
       setLikeDoc(doc.data());
     });
     // Clean up the listener when the component unmounts
-    // return () => unsubscribe();
+    return () => unsubscribe();
   }, [likeRef]);
 
   const addLike = useCallback(async () => {
